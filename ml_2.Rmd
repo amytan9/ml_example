@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 library(fs)
 library(tidymodels)
+library(gt)
 library(tidyverse)
 
 ```
@@ -16,7 +17,7 @@ library(tidyverse)
 ## Predicting Democratic Votes
 
 
-```{r download, cache=TRUE}
+```{r download, echo=FALSE, cache=TRUE}
 # Mostly the same code as Tuesday, but cleaned up. Do you understand what every
 # line does? If not, ask your partner!
 
@@ -43,7 +44,7 @@ file_delete(c("master.zip", "2018-live-poll-results-master"))
 
 ```
 
-```{r clean}
+```{r clean, echo=FALSE}
 # Data is somewhat messy. Some of our functions require that the dependent
 # variable be a factor with two levels, rather than a simple 0/1 variable. Many
 # of the variables in the original data are missing for thousands of
@@ -84,8 +85,34 @@ x_1 <- clean %>%
   mutate(prediction = predict(model_1, type = "response")) %>% 
   mutate(pred_dvote = as.factor(ifelse(prediction > mean(prediction), "Yes", "No")))
 
+#sample_n
 ```
 
+```{r evaluate, echo=FALSE}
 
+#how good is this model
+metrics(x_1, truth = dvote, estimate = pred_dvote) %>% 
+  gt() %>% 
+  tab_header("Model 1 Performance")
+
+#Accuracy is the proportion of the data that are predicted correctly.
+
+#Kappa is a similar measure to accuracy(), but is normalized by the accuracy that would be expected by chance alone and is very useful when one or more classes have large frequency distributions.--->  Did 10% better than a random guess.
+
+```
+
+```{r model_2, echo=FALSE}
+model_2 <- glm(data = clean, dvote ~ gender + party, family = "binomial")
+
+x_2 <- clean %>% 
+  mutate(prediction = predict(model_2, type = "response")) %>% 
+  mutate(pred_dvote = as.factor(ifelse(prediction > mean(prediction), "Yes", "No")))
+
+metrics(x_2, truth = dvote, estimate = pred_dvote) %>% 
+  gt() %>% 
+  tab_header("Model 2 Performance")
+
+summary(model_2)
+```
 
 
